@@ -1,0 +1,98 @@
+services:
+  database:
+    image: postgres:17.0
+    container_name: postgresql_database
+    restart: unless-stopped
+    environment:
+      - POSTGRES_DB=${POSTGRES_DB}
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    labels:
+      - "traefik.enable=false"    
+  migrations:
+    image: flyway/flyway:10-alpine
+    depends_on:
+      database:
+        condition: service_healthy  
+    volumes:
+      - ./database-migrations:/flyway/sql
+    command: -url=jdbc:postgresql://database:5432/${POSTGRES_DB} -user=${POSTGRES_USER} -password=${POSTGRES_PASSWORD} -connectRetries=60 migrate
+    labels:
+      - "traefik.enable=false"
+  server:
+   # Points to the folder containing the server Dockerfile
+    build: server
+    restart: unless-stopped
+    volumes:
+      - ./server:/app
+    environment:
+      - DATABASE_URL=${DATABASE_URL}  
+    depends_on:
+      database:
+        condition: service_healthy  
+    deploy:
+      replicas: 1
+    # Enabled Traefik and define a router called server-router that listens to the web entrypoint and routes all incoming request to the server service      
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.server-router.entrypoints=web"
+      - "traefik.http.routers.server-router.rule=PathPrefix(`/`)"
+      - "traefik.http.services.server-service.loadbalancer.server.port=8000"      
+    healthcheck:
+      test: ["CMD", "dnsdomainname"]
+
+  client:
+    build: client
+    restart: unless-stopped
+    volumes:
+      - ./client:/app
+      - /app/node_modules # for Windows to not loose track of the container's modules
+    ports:
+      - 4321:4321
+    depends_on:
+      - server      
+
+  # routing incoming requests to the given services
+  traefik:
+    image: traefik:v3.3
+    command:
+      - "--api.insecure=true"
+      - "--providers.docker=true"
+      - "--entrypoints.web.address=:8000"
+    ports:
+      - "8080:8080"
+      - "8000:8000"
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"
+
+  redis:
+      image: redis:7.4.2
+      command: redis-server /usr/local/etc/redis/redis.conf
+      volumes:
+        - ./redis/redis.conf:/usr/local/etc/redis/redis.conf
+  consumer-server:
+    build: consumer-server
+    restart: unless-stopped
+    volumes:
+      - ./consumer-server:/app
+    depends_on:
+      - redis
+      - database
+    environment:
+      - DATABASE_URL=${DATABASE_URL}  
+    labels:
+      - "traefik.enable=false"  
+
+  k6-tests:
+    entrypoint: "/bin/true"
+    build: k6-tests
+    volumes:
+      - ./k6-tests/tests:/tests
+    depends_on:
+      - client                    

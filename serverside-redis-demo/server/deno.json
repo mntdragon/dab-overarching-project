@@ -1,0 +1,16 @@
+{
+  "tasks": {
+    "dev": "deno run --allow-net --allow-env --watch app-run.js"
+  },
+
+  "imports": {
+    "@hono/hono": "jsr:@hono/hono@4.11.3",
+    "postgres": "npm:postgres@3.4.7",
+    "ioredis": "npm:ioredis@5.6.0"
+  },
+
+  "fmt": {
+    "useTabs": true,
+    "lineWidth": 100
+  }
+}
