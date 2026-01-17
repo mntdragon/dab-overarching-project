@@ -12,6 +12,8 @@ services:
       interval: 5s
       timeout: 5s
       retries: 5
+    labels:
+      - "traefik.enable=false"  
   migrations:
     image: flyway/flyway:10-alpine
     env_file:
@@ -22,21 +24,56 @@ services:
     volumes:
       - ./database-migrations:/flyway/sql
     command: -url=jdbc:postgresql://database:5432/${POSTGRES_DB} -user=${POSTGRES_USER} -password=${POSTGRES_PASSWORD} -connectRetries=60 migrate
+    labels:
+      - "traefik.enable=false"
+  
+  traefik:
+    image: traefik:v3.3
+    command:
+      - "--api.insecure=true"
+      - "--providers.docker=true"
+      - "--entrypoints.web.address=:8000"
+    ports:
+      - "8080:8080"
+      - "8000:8000"
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"
 
   server:
     build: server
     restart: unless-stopped
     volumes:
       - ./server:/app
-    ports:
-      - 8000:8000
+    depends_on:
+      - redis
+      - database  
     env_file:
       - project.env  
     environment:
       - DATABASE_URL=${DATABASE_URL}
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.server-router.entrypoints=web"
+      - "traefik.http.routers.server-router.rule=PathPrefix(`/`)"
+      - "traefik.http.services.server-service.loadbalancer.server.port=8000"  
 
+  grader:
+    build: grader
+    restart: unless-stopped
+    volumes:
+      - ./grader:/app
+    env_file:
+      - project.env  
+    environment:
+      - DATABASE_URL=${DATABASE_URL}  
+    labels:
+      - "traefik.http.routers.grader.rule=PathPrefix(`/api/status`) || PathPrefix(`/api/consume`)"
+      - "traefik.http.services.grader.loadbalancer.server.port=8000"
+ 
   redis:
       image: redis:7.4.2
       command: redis-server /usr/local/etc/redis/redis.conf
       volumes:
-        - ./redis/redis.conf:/usr/local/etc/redis/redis.conf    
+        - ./redis/redis.conf:/usr/local/etc/redis/redis.conf
+      labels:
+      - "traefik.enable=false"  
