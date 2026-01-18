@@ -1,0 +1,25 @@
+<!-- Client-Side Rendering
+ fetch items from the server and renders them into a list on the page-->
+<!--The fetching happens when the HTML has been parsed and the DOM has been constructed-->
+<html>
+
+<head>
+  <script>
+    document.addEventListener("DOMContentLoaded", async () => {
+      const list = document.getElementById("list");
+      const items = await fetch("http://localhost:8000/items");
+      const json = await items.json();
+      for (const item of json) {
+        const li = document.createElement("li");
+        li.textContent = item.name;
+        list.appendChild(li);
+      }
+    });
+  </script>
+</head>
+
+<body>
+  <ul id="list"></ul>
+</body>
+
+</html>
