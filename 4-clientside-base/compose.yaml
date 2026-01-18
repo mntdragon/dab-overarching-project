@@ -1,0 +1,50 @@
+services:
+  server:
+    build: server
+    restart: unless-stopped
+    volumes:
+      - ./server:/app
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.server-router.entrypoints=web"
+      - "traefik.http.routers.server-router.rule=PathPrefix(`/`)"
+      - "traefik.http.services.server-service.loadbalancer.server.port=8000"      
+    healthcheck:
+      test: ["CMD", "deno", "eval", "await fetch('http://localhost:8000')"]
+      interval: 5s
+      timeout: 5s
+      retries: 3
+
+  client:
+    build: client
+    restart: unless-stopped
+    volumes:
+      - ./client:/app
+      - /app/node_modules # for Windows to not loose track of the container's modules
+    depends_on:
+      - server
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.client-router.entrypoints=web"
+      - "traefik.http.routers.client-router.rule=Host(`localhost`)"
+      - "traefik.http.services.client-service.loadbalancer.server.port=4321"  
+
+  k6-tests:
+    entrypoint: "/bin/true"
+    build: k6-tests
+    volumes:
+      - ./k6-tests/tests:/tests
+    depends_on:
+      - client  
+
+  traefik:
+    image: traefik:v3.3
+    command:
+      - "--api.insecure=true"
+      - "--providers.docker=true"
+      - "--entrypoints.web.address=:8000"
+    ports:
+      - "8080:8080" # Traefik Dashboard
+      - "8000:8000"
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"       
