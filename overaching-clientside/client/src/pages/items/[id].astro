@@ -1,0 +1,20 @@
+---
+export const getStaticPaths = () => {
+  return [
+    { params: { id: 1 } },
+    { params: { id: 2 } },
+    { params: { id: 3 } },
+    { params: { id: 4 } },
+  ];
+}
+
+import Layout from "../../layouts/Layout.astro";
+
+const id = Astro.params.id;
+const nextItem = Number(id) + 1;
+---
+
+<Layout title="Items">
+  <p>You are at { id }</p>
+<button onclick={`location.href='/items/${nextItem}'`}>Next</button>
+</Layout>

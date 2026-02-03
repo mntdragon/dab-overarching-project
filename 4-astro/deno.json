@@ -1,0 +1,6 @@
+{
+  "imports": {
+    "@astrojs/svelte": "npm:@astrojs/svelte@^7.2.5",
+    "svelte": "npm:svelte@^5.46.4"
+  }
+}
