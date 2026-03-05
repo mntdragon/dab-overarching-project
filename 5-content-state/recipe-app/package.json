@@ -10,6 +10,9 @@
   },
   "dependencies": {
     "@astrojs/mdx": "^4.3.13",
-    "astro": "^5.17.1"
+    "@astrojs/svelte": "^7.2.5",
+    "astro": "^5.17.1",
+    "svelte": "^5.53.7",
+    "typescript": "^5.9.3"
   }
 }
