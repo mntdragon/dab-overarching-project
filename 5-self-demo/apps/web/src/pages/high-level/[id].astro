@@ -1,0 +1,22 @@
+---
+import { getEntry  } from "astro:content";
+import RealtimeIsland from "../../components/RealtimeIsland.svelte";
+
+const id = Astro.params.id!;
+const entry = await getEntry("highLevel", id);
+
+if (!entry) return new Response("Not found", { status: 404 });
+
+const { Content } = await entry.render();
+---
+
+<html>
+  <head><title>{entry.data.title}</title></head>
+  <body>
+    <h1>{entry.data.title}</h1>
+    <p>{entry.data.summary}</p>
+
+    <!-- This enables <RealtimeIsland client:load /> in REMOTE MDX -->
+    <Content components={{ RealtimeIsland }} />
+  </body>
+</html>

@@ -1,0 +1,32 @@
+services:
+  traefik:
+    image: traefik:v3.6
+    command:
+      - --configFile=/etc/traefik/traefik.yml
+    ports:
+      - "8000:8000"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./infra/traefik/traefik.yml:/etc/traefik/traefik.yml:ro
+
+  api:
+    build: ./apps/api
+    expose:
+      - "3000"
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.api.rule=PathPrefix(`/api`)
+      - traefik.http.routers.api.entrypoints=web
+      - traefik.http.services.api.loadbalancer.server.port=3000
+
+  web:
+    build: ./apps/web
+    environment:
+      - HIGH_LEVEL_URL=http://traefik:8000/api/content/high-level
+    expose:
+      - "4321"
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.web.rule=PathPrefix(`/`)
+      - traefik.http.routers.web.entrypoints=web
+      - traefik.http.services.web.loadbalancer.server.port=4321
