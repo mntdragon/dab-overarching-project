@@ -1,5 +1,5 @@
 {
-  "name": "recipe-app",
+  "name": "my-dog-facts-app",
   "type": "module",
   "version": "0.0.1",
   "scripts": {
@@ -9,7 +9,6 @@
     "astro": "astro"
   },
   "dependencies": {
-    "@astrojs/mdx": "^4.3.13",
     "@astrojs/svelte": "^7.2.5",
     "astro": "^5.17.1",
     "svelte": "^5.53.7",
