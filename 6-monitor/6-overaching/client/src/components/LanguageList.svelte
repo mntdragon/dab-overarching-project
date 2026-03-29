@@ -9,6 +9,7 @@
 </script>
 
 <h1>Available languages</h1>
+
 <ul>
   {#each languages as lang}
     <li>
