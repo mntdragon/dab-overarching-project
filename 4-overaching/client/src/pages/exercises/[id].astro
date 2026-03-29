@@ -1,0 +1,11 @@
+---
+export const prerender = false;
+import ExerciseForm from '../../components/ExerciseForm.svelte';
+const { id } = Astro.params;
+---
+<html lang="en">
+	<body>
+		<p>Exercise {id}</p>
+		<ExerciseForm client:load />
+	</body>
+</html>
