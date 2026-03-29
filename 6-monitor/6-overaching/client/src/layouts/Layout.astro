@@ -1,17 +1,12 @@
 ---
-// Layout.astro
+import Nav from '../components/Nav.svelte';
 ---
 <!DOCTYPE html>
 <html lang="en">
-	<head>
-		<meta charset="UTF-8" />
-		<meta name="viewport" content="width=device-width" />
-		<title>Programming Exercises</title>
-	</head>
-	<body>
-		<!-- REMOVE the <h1> tag from here if it exists -->
-		<!-- <h1>Default Title</h1>  <-- DELETE THIS LINE -->
-		
-		<slot /> <!-- This is where your Svelte components are injected -->
-	</body>
+    <body>
+        <Nav client:load /> 
+        <main>
+            <slot /> 
+        </main>
+    </body>
 </html>
