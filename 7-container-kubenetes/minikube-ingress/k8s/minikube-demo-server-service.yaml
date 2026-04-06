@@ -1,22 +1,12 @@
-apiVersion: apps/v1
-kind: Deployment
+apiVersion: v1
+kind: Service
 metadata:
-  name: minikube-demo-server-deployment
-  labels:
-    app: minikube-demo-server
+  name: minikube-demo-server-service
 spec:
-  replicas: 2
+  type: LoadBalancer
+  ports:
+    - port: 8000
+      targetPort: 8000
+      protocol: TCP
   selector:
-    matchLabels:
-      app: minikube-demo-server
-  template:
-    metadata:
-      labels:
-        app: minikube-demo-server
-    spec:
-      containers:
-        - name: minikube-demo-server
-          image: minikube-demo-server:1.0
-          imagePullPolicy: Never
-          ports:
-            - containerPort: 8000
+    app: minikube-demo-server
