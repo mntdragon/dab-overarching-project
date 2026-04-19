@@ -117,6 +117,17 @@ services:
     labels:
       - "traefik.enable=false"
     command: redis-server /usr/local/etc/redis/redis.conf
+
+  inference-api:
+    build: inference-api
+    restart: unless-stopped
+    volumes:
+      - ./inference-api:/app
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.inference-api-router.entrypoints=web"
+      - "traefik.http.routers.inference-api-router.rule=PathPrefix(`/inference-api`)"
+      - "traefik.http.services.inference-api-service.loadbalancer.server.port=8000"  
  
 volumes:
   postgres-data:
