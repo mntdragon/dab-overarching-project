@@ -1,0 +1,12 @@
+---
+// client/src/pages/languages/[id].astro
+export const prerender = false;
+import Layout from '../../layouts/Layout.astro';
+import ExerciseList from '../../components/ExerciseList.svelte';
+
+const { id } = Astro.params;
+---
+
+<Layout>
+  <ExerciseList languageId={id} client:load />
+</Layout>

@@ -1,0 +1,13 @@
+services:
+  server:
+    build: server
+    restart: unless-stopped
+    volumes:
+      - ./server:/app
+    ports:
+      - 8000:8000
+  k6-tests:
+    entrypoint: "/bin/true"
+    build: k6-tests
+    volumes:
+      - ./k6-tests/tests:/tests    

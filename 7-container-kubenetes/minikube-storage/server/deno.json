@@ -1,0 +1,9 @@
+{
+  "tasks": {
+    "dev": "deno run --allow-net --allow-env --watch app-run.js",
+    "start": "deno run --allow-net --allow-env app-run.js"
+  },
+  "imports": {
+    "@hono/hono": "jsr:@hono/hono@4.11.3"
+    }
+}
