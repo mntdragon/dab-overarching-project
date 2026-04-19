@@ -1,7 +1,6 @@
 import { Hono } from "@hono/hono";
 import postgres from "postgres";
 import { Redis } from "ioredis";
-import { levenshteinDistance } from "./grader-utils.js";
 
 const app = new Hono();
 const sql = postgres(Deno.env.get("DATABASE_URL"));
@@ -44,31 +43,13 @@ const startGrading = async () => {
       const randomSleep = Math.floor(Math.random() * 2000) + 1000;
       await new Promise((resolve) => setTimeout(resolve, randomSleep));
 
-      const [submission] = await sql`
-        SELECT es.source_code, e.solution_code
-        FROM exercise_submissions es
-        JOIN exercises e ON es.exercise_id = e.id
-        WHERE es.id = ${subId}
-      `;
-
-      if (!submission) {
-        console.log(`Submission ${subId} was not found, skipping.`);
-        continue;
-      }
-
-      const submissionCode = submission.source_code ?? "";
-      const solutionCode = submission.solution_code ?? "";
-      const maxLength = Math.max(submissionCode.length, solutionCode.length);
-      const distance = levenshteinDistance(submissionCode, solutionCode);
-      const grade = maxLength === 0
-        ? 100
-        : Math.ceil(100 * (1 - (distance / maxLength)));
-
+      // update submission as 'graded' with random grade in the database
+      const randomGrade = Math.floor(Math.random() * 101);
       await sql`UPDATE exercise_submissions
-        SET grading_status = 'graded', grade = ${grade}
-        WHERE id = ${subId}
-      `;
-      console.log(`Finished submission ${subId} with grade ${grade}`);
+    SET grading_status = 'graded', grade = ${randomGrade}
+    WHERE id = ${subId}
+  `;
+      console.log(`Finished submission ${subId} with grade ${randomGrade}`);
     } else {
       // Consumption disabled: wait 500ms before checking the flag again
       await new Promise((resolve) => setTimeout(resolve, 500));
